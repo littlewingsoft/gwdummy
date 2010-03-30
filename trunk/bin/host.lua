@@ -1,5 +1,5 @@
 require('lua/LuaXml')
---require('lua/scheduler')
+require('scheduler')
 
 
 IP = "66.232.147.107"
@@ -51,12 +51,63 @@ NICK = "jmt3"
 local RoomUser = {}
 
 
+local chatLoop = function( taskObj )
+
+	while( true ) do
+		send_chatmsg( 2 , "안녕하세요 고스트워치 한판 하실래예?" )
+		scheduler:wait(taskObj,2)
+--[[
+		send_move( {orgx=7.336,orgy=-7.057,orgz=9.336, destx=6.790,desty=3.177,destz=9.336} ) --강제로 위치를 맞춥니다.
+		scheduler:wait(taskObj,2)
+
+		send_move( {orgx=6.790,orgy=3.177,orgz=9.336,destx= 7.336,desty=-7.057,destz=9.336} ) --강제로 위치를 맞춥니다.
+		scheduler:wait(taskObj,2)
+--]]
+	end
+end
+
+
+local myPos={ x=0.21, y=15.57,z=9.336 }
+local destPos = myPos
 function OnEntryLobby()
-send_move( 2.21,-0.57,9.336 ) --강제로 위치를 맞춥니다.
+SetTimer(1818,100) --1초에 한번씩 1818 이라는 아이디로 OnTimer 를 호출시킴
+send_move( {orgx=0,orgy=15.7,orgz=9.336,destx=0,desty=16.7,destz=9.336} ) --강제로 위치를 맞춥니다.
 send_chatmsg( 2, "저는 더미클라이언트 입니다. 정상적인 작동을 하지 않을수 있습니다." )
-send_makeRoom("테스트중")
+
+scheduler:addTask( "chatLoop", chatLoop )
+scheduler:Start()
+
+--send_makeRoom("테스트중")
 RoomUser = {} --모두 날려버려.
 end
+
+
+function moveTask (taskObj)
+
+		send_move( {orgx=myPos.x,orgy=myPos.y, orgz=myPos.z ,
+					destx=destPos.x,desty=destPos.y,destz= destPos.z } )
+
+		--scheduler:wait(taskObj,2)
+
+		end
+
+function OnAvatarMove(obj)
+	print( "wSid: "..obj.wSid )
+
+	print( string.format("flag: %d", obj.flag ) )
+	print( string.format("Goal: %.3f,%f,%f",obj.fPosGoal_0, obj.fPosGoal_1,obj.fPosGoal_2) )
+	print( string.format( "Orig: %.3f,%f,%f",obj.fPosOrig_0, obj.fPosOrig_1,obj.fPosOrig_2) )
+
+	if obj.wSid ~= MySID() then
+		destPos = {x=obj.fPosGoal_0, y=obj.fPosGoal_1, z=obj.fPosGoal_2 }
+		scheduler:addTask( string.format( "moveTask_%d",os.clock() ), moveTask )
+
+	else
+		myPos={ obj.fPosGoal_0, obj.fPosGoal_1,obj.fPosGoal_2}
+	end
+end
+
+
 
 function OnAddUser(name)
 	send_chatmsg( 1 , name.."님 안녕하세요 고스트워치 한판 하실래예?" )
@@ -117,4 +168,13 @@ function OnChat( chat )
 	end
 end
 
+function OnTimer()
+	scheduler:loop()
+	--print( "OnTimer" )
+end
+
+--방장이 게임 시작함.
+function OnStartGame()
+	send_loadinComplete()
+end
 

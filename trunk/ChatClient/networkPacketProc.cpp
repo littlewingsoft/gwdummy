@@ -399,6 +399,26 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 		}
 		break;
 
+	case _GS_PKT_MOVE:
+		{
+			GS_PKT_MOVE* pkt= (GS_PKT_MOVE*)pkPacket;
+
+			lua_tinker::table obj(luaGlue::g_hLua);
+			obj.set("wSid",pkt->wSid );
+			obj.set("flag",pkt->wFlag);
+			obj.set("fPosGoal_0",pkt->fPosGoal[0] );
+			obj.set("fPosGoal_1",pkt->fPosGoal[1] );
+			obj.set("fPosGoal_2",pkt->fPosGoal[2] );
+
+			obj.set("fPosOrig_0",pkt->fPosOrig[0] );
+			obj.set("fPosOrig_1",pkt->fPosOrig[1] );
+			obj.set("fPosOrig_2",pkt->fPosOrig[2] );
+
+			lua_tinker::call<void>(luaGlue::g_hLua,"OnAvatarMove", obj );
+			
+		}
+		break;
+
 	case _GS_PKT_REQ_SELECT_DECKCARD_RE:
 	case _GS_PKT_RESOURCE_ALL_COMPLETE:
 	case _GS_PKT_SCENE_COMPLETE_RE:
@@ -437,7 +457,6 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 		break;
 
 	case _GS_PKT_MODIFYROOM:
-	case _GS_PKT_MOVE:
 	case _GS_PKT_MYCHAR_PARTS_GET_RE:
 	case _GS_PKT_MYCHAR_DECKS_GET_RE:
 	case _GS_PKT_MYCHAR_INVENTORY_GET_RE:
