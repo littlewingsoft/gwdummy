@@ -34,18 +34,20 @@ namespace luaGlue
 {
 	lua_State* g_hLua =0;
 	DWORD timerID=0;
-	void send_move( float x,float y,float z )
+	void send_move(lua_tinker::table obj )
 	{
 		GS_PKT_MOVE pkt;
 		pkt.Len = sizeof( pkt );
 		pkt.FROM = _FROM_CLIENT;
-		pkt.fPosOrig[0] = x;
-		pkt.fPosOrig[1] = y;
-		pkt.fPosOrig[2] = z;
+		pkt.fPosOrig[0] = obj.get<float>("orgx");
+		pkt.fPosOrig[1] = obj.get<float>("orgy");
+		pkt.fPosOrig[2] = obj.get<float>("orgz");
 
-		pkt.fPosGoal[0] = x;
-		pkt.fPosGoal[1] = y;
-		pkt.fPosGoal[2] = z;
+		pkt.fPosGoal[0]= obj.get<float>("destx");;
+		pkt.fPosGoal[1]= obj.get<float>("desty");;
+		pkt.fPosGoal[2]= obj.get<float>("destz");;
+
+		pkt.wFlag = 21;
 
 		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();
 		pkt.wSid = pkMain->m_wSid;
@@ -172,13 +174,23 @@ namespace luaGlue
 		timerID = _timerID;
 	}
 
+	int MySID()
+	{
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+		return pkMain->m_wSid;
+	}
+
 	struct init_t
 	{
 		init_t()
 		{
 			g_hLua = lua_open();
-			luaopen_base(g_hLua);
-			luaopen_debug(g_hLua);
+//			luaopen_base(g_hLua);
+////			luaopen_io(g_hLua);
+//			luaopen_os(g_hLua);
+//
+			luaopen_string(g_hLua);
+//			luaopen_debug(g_hLua);
 			luaL_openlibs(g_hLua);
 			//luaopen_package(g_hLua);
 		}
@@ -204,7 +216,8 @@ namespace luaGlue
 		lua_tinker::def( g_hLua, "send_requestRoomList", send_requestRoomList );	
 		lua_tinker::def( g_hLua, "send_chatmsg", send_chatmsg );	
 
-		lua_tinker::def( g_hLua, "SetTimer", SetTimer );	
+		lua_tinker::def( g_hLua, "SetTimer", SetTimer );
+		lua_tinker::def( g_hLua, "MySID",MySID );
 
 		lua_tinker::dofile( luaGlue::g_hLua, theApp.m_lpCmdLine  );
 		//lua_tinker::enum_stack( luaGlue::g_hLua);
