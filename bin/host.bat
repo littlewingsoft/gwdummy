@@ -1,1 +1,1 @@
-ChatClient.exe testClient.lua
+ChatClient.exe host.lua
