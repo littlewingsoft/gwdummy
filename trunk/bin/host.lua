@@ -74,34 +74,37 @@ SetTimer(1818,100) --1초에 한번씩 1818 이라는 아이디로 OnTimer 를 호출시킴
 send_move( {orgx=0,orgy=15.7,orgz=9.336,destx=0,desty=16.7,destz=9.336} ) --강제로 위치를 맞춥니다.
 send_chatmsg( 2, "저는 더미클라이언트 입니다. 정상적인 작동을 하지 않을수 있습니다." )
 
-scheduler:addTask( "chatLoop", chatLoop )
+--scheduler:addTask( "chatLoop", chatLoop )
+--scheduler:addTask( "moveTask", moveTask )
 scheduler:Start()
 
---send_makeRoom("테스트중")
+send_makeRoom("테스트중")
 RoomUser = {} --모두 날려버려.
 end
 
 
+local destPosQ={}
 function moveTask (taskObj)
-
-		send_move( {orgx=myPos.x,orgy=myPos.y, orgz=myPos.z ,
-					destx=destPos.x,desty=destPos.y,destz= destPos.z } )
-
-		--scheduler:wait(taskObj,2)
-
+	while( true ) do
+		if #destPosQ ~= 0 then
+			send_move( {orgx=myPos.x,orgy=myPos.y, orgz=myPos.z ,
+						destx=destPos.x,desty=destPos.y,destz= destPos.z } )
 		end
+		scheduler:wait(taskObj,2)
+	end
+end
 
 function OnAvatarMove(obj)
 	print( "wSid: "..obj.wSid )
-
-	print( string.format("flag: %d", obj.flag ) )
-	print( string.format("Goal: %.3f,%f,%f",obj.fPosGoal_0, obj.fPosGoal_1,obj.fPosGoal_2) )
 	print( string.format( "Orig: %.3f,%f,%f",obj.fPosOrig_0, obj.fPosOrig_1,obj.fPosOrig_2) )
+	print( string.format("Goal: %.3f,%f,%f",obj.fPosGoal_0, obj.fPosGoal_1,obj.fPosGoal_2) )
+	print( string.format("flag: %d", obj.flag ) )
+	print("\n")
 
 	if obj.wSid ~= MySID() then
-		destPos = {x=obj.fPosGoal_0, y=obj.fPosGoal_1, z=obj.fPosGoal_2 }
-		scheduler:addTask( string.format( "moveTask_%d",os.clock() ), moveTask )
-
+		destPos= {x=obj.fPosGoal_0, y=obj.fPosGoal_1, z=obj.fPosGoal_2 }
+--		send_move( {orgx=myPos.x,orgy=myPos.y, orgz=myPos.z ,
+	--				destx=destPos.x,desty=destPos.y,destz= destPos.z } )
 	else
 		myPos={ obj.fPosGoal_0, obj.fPosGoal_1,obj.fPosGoal_2}
 	end
@@ -133,6 +136,11 @@ end
 -- 방안에 사람이 레디 했을때. 호출됨
 function OnReadyChange( Nick,readyState )
 	RoomUser[Nick]=readyState
+
+	if Nick=="jmt1" and readyState==1 then
+		send_startGame()
+		send_loadinComplete()
+	end
 
 	local cnt = 0
 table.foreach( RoomUser,
