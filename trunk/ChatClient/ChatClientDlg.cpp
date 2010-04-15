@@ -11,6 +11,7 @@
 
 // CChatClientDlg 대화 상자
 extern map<WORD,CHAR_DATA> g_UserMap;
+CSound g_cSound;
 
 unsigned __stdcall ThreadProc(void *lp)
 {
@@ -126,7 +127,7 @@ BOOL CChatClientDlg::OnInitDialog()
 	TCHAR drive[_MAX_DRIVE], dir[_MAX_DIR], fname[_MAX_FNAME], ext[_MAX_EXT];
 
 	::GetModuleFileName(AfxGetApp()->m_hInstance, Buf, _MAX_PATH);
-	_splitpath(Buf,drive,dir,fname,ext);
+	_splitpath( Buf, drive,dir,fname,ext);
 	_tcscpy(szPath, drive);
 	_tcscat(szPath, dir);		
 //	sprintf(szIniPath, _T("%s%s"), szPath, _T("server.ini"));
@@ -172,6 +173,9 @@ BOOL CChatClientDlg::OnInitDialog()
 	}
 
 	this->SetWindowText( theApp.m_lpCmdLine );
+
+	g_cSound.OnCreate( this->m_hWnd );
+	g_cSound.Open( "./audio/Tech remix.ogg");
 
 	return TRUE;  // 컨트롤에 대한 포커스를 설정하지 않을 경우 TRUE를 반환합니다.
 }
@@ -259,8 +263,21 @@ BOOL CChatClientDlg::PreTranslateMessage(MSG* pMsg)
 					m_ChatList.ResetContent();
 					return TRUE;
 				}
+				else if( m_strChat == "/stop" )
+				{
+					g_cSound.Stop();
+				}
+				else if( m_strChat == "/play" )
+				{
+					g_cSound.Play(false);
+				}
+				else if( m_strChat == "/open" )
+				{
+					//random 하게.
 
-				
+				}
+				//else if( m_strChat == "/vol 1
+					
 
 				m_ChatEdit.SetSel(0, -1, TRUE);
 			    m_ChatEdit.Clear();

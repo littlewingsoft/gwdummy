@@ -35,6 +35,12 @@
 #include <afxext.h>         // MFC 익스텐션
 #include <afxdisp.h>        // MFC 자동화 클래스
 
+#define DIRECTSOUND_VERSION 0x0800
+
+#include	<mmsystem.h>
+#include    <dsound.h>
+
+
 #include <afxdtctl.h>		// Internet Explorer 4 공용 컨트롤에 대한 MFC 지원
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// Windows 공용 컨트롤에 대한 MFC 지원
@@ -45,6 +51,8 @@
 
 #include <sstream>
 #include <process.h>
+
+
 
 #include "../Common/STLMap.h"
 #include "CommonDefines.h"
@@ -63,3 +71,4 @@ extern "C" {
 #include "luaGlue.h"
 
 
+#include "sound.h"

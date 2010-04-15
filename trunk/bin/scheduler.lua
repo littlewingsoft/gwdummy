@@ -4,7 +4,11 @@ tasks={},
 coLoop = nil
 }
 
-
+function proc_ret(successflag, errmsg)
+	if successflag == false then
+		print( successflag, errmsg )
+	end
+end
 
 --os.time() 1초간격으로 늘어남.
 -- 처리가능한 애들만 실행시키고 실행이 다된 애들은 리스트에서 삭제.
@@ -15,7 +19,8 @@ function scheduler:Dispatch()
 			local currtime = os.clock()
 			--print( "worked"..name ) --, task.wakeUptime
 			if  os.clock() >= task.wakeUptime + task.timeStamp then
-				coroutine.resume( task.co, task )
+				bFlag, msg = coroutine.resume( task.co, task )
+				proc_ret(bFlag, msg )
 			end
 
 			if coroutine.status(task.co) == "dead" then
@@ -32,7 +37,8 @@ function scheduler:Start()
 end
 
 function scheduler:loop()
-	coroutine.resume( self.coLoop, scheduler )
+	bFlag, msg = coroutine.resume( self.coLoop, scheduler )
+	proc_ret(bFlag, msg )
 end
 
 function scheduler:addTask( name, task )

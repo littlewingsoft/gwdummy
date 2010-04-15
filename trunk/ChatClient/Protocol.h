@@ -1485,7 +1485,6 @@ struct GS_PKT_CREATEROOM : PACKET_BASE
 	{
 		ZeroMemory(this,sizeof(GS_PKT_CREATEROOM));
 		MPID = _GS_PKT_CREATEROOM;
-#pragma pack(show)
 		Len = sizeof(GS_PKT_CREATEROOM);
 	}
 //	WORD	ChannelSN;				/// 메인채널번호(안쓰임)

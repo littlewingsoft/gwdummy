@@ -517,13 +517,22 @@ void lua_tinker::push(lua_State *L, unsigned long long ret)
 	lua_gettable(L, LUA_GLOBALSINDEX);
 	lua_setmetatable(L, -2);
 }
+//
+//template<>
+//void lua_tinker::push(lua_State *L, lua_tinker::table ret)
+//{
+//	lua_pushvalue(L, ret.m_obj->m_index);
+//}
 
-template<>
+
+template<>   
 void lua_tinker::push(lua_State *L, lua_tinker::table ret)
 {
-	lua_pushvalue(L, ret.m_obj->m_index);
+    if( ret.m_obj&& ret.m_obj->validate() )
+        lua_pushvalue(L, ret.m_obj->m_index);
+    else
+        lua_pushnil(L);
 }
-
 /*---------------------------------------------------------------------------*/ 
 /* pop                                                                       */ 
 /*---------------------------------------------------------------------------*/ 

@@ -463,6 +463,8 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 	case _GS_PKT_CHG_PLAYER_SLOT:
 	case _GS_PKT_CHG_PLAYER_DECK:
 	case _GS_PKT_LEVELUP:
+	case _GS_PKT_DELUSER:
+	case _GS_PKT_STOP:
 		break;
 
 	default:
