@@ -8,6 +8,12 @@ extern map<WORD,CHAR_DATA> g_UserMap;
 void _print(const char* szMsg )
 {
 	CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();
+	if( pkMain == 0 )
+		return;
+
+	if( szMsg == 0 )
+		return;
+
 	pkMain->m_ChatList.AddString( szMsg );
 	//pkMain->m_ChatList.AddString( "\n" );
 	pkMain->m_ChatList.SetTopIndex( pkMain->m_ChatList.GetCount()-1);
@@ -133,6 +139,11 @@ namespace luaGlue
 
 	}
 
+	void Volume( float fVol )
+	{
+		
+	}
+
 	/*
 		enum eCHATTYPE				/// 커뮤니티 종류값
 		{
@@ -180,19 +191,29 @@ namespace luaGlue
 		return pkMain->m_wSid;
 	}
 
+	bool getTable(lua_tinker::table tb)
+	{
+		if( 0 )
+		{
+			lua_tinker::enum_stack(luaGlue::g_hLua );
+			lua_tinker::pop<lua_tinker::table>(luaGlue::g_hLua );
+			lua_tinker::enum_stack(luaGlue::g_hLua );
+			return false;
+		}
+		tb.set("name","jjm");
+		tb.set("age", 31);
+		
+		return true;
+		//lua_tinker::call<void,lua_tinker::table>( luaGlue::g_hLua, "push_table",tb);
+	}
+
 	struct init_t
 	{
 		init_t()
 		{
 			g_hLua = lua_open();
-//			luaopen_base(g_hLua);
-////			luaopen_io(g_hLua);
-//			luaopen_os(g_hLua);
-//
 			luaopen_string(g_hLua);
-//			luaopen_debug(g_hLua);
 			luaL_openlibs(g_hLua);
-			//luaopen_package(g_hLua);
 		}
 
 		~init_t()
@@ -207,6 +228,8 @@ namespace luaGlue
 	{
 		// Lua 기본 함수들을 로드한다.
 
+		lua_tinker::def( g_hLua, "ods", show_error);
+		
 		lua_tinker::def( g_hLua, "_ALERT", show_error);
 		lua_tinker::def( g_hLua, "print", _print );
 		lua_tinker::def( g_hLua, "send_move", send_move );	
@@ -218,6 +241,8 @@ namespace luaGlue
 
 		lua_tinker::def( g_hLua, "SetTimer", SetTimer );
 		lua_tinker::def( g_hLua, "MySID",MySID );
+
+		lua_tinker::def( g_hLua, "getTable",getTable );
 
 		lua_tinker::dofile( luaGlue::g_hLua, theApp.m_lpCmdLine  );
 		//lua_tinker::enum_stack( luaGlue::g_hLua);
