@@ -13,6 +13,9 @@
 	#pragma pack(1)
 #endif
 
+#ifdef _DEBUG
+//#pragma pack( show )
+#endif
 
 #define _PROTOCOL_VERSION 1003
 
@@ -60,7 +63,7 @@ enum eCHATTYPE				/// 커뮤니티 종류값
 	_CHAT_PERSON = 0,		/// 개인 메시지(귓속말)
 	_CHAT_ROOM,				/// 방 메시지
 	_CHAT_CHANNEL,			/// 채널 메시지
-	_CHAT_PARTY,			/// 파티 메시지
+	_CHAT_DUNGEON,			/// 던전 메시지
 	_CHAT_GUILD,			/// 길드 메시지
 	_CHAT_SYSTEM,			/// 시스템 메시지
 	_CHAT_GAME_MANAGER,		/// 운영자 메시지
@@ -97,7 +100,7 @@ typedef struct PACKET_BASE
 // login server packet id enum list.
 enum eLS_PACKET_ID
 {
-	_LS_PKT_LOGIN = 200,
+	_LS_PKT_LOGIN = 10000,
 	_LS_PKT_LOGIN_RE,
 	_LS_PKT_SERVER_LIST,
 	_LS_PKT_SERVER_LIST_RE,
@@ -170,7 +173,7 @@ enum eLB_MAIN_PACKET_ID
 	_GS_PKT_MODIFYROOM,					/// 대기방: 방 변경
 	_GS_PKT_ROOM_DEPORTATION,			/// 대기방: 방원 추방
 	_GS_PKT_CHG_PLAYER_SLOT,			/// 대기방: 플레이어 슬롯 변경
-	_GS_PKT_CHG_PLAYER_DECK,			/// 대기방: 플레이어 덱 변경
+	_GS_PKT_CHG_PLAYER_DECK,			/// 플레이어 덱 변경
 	_GS_PKT_CHG_PLAYER_READY,			/// 대기방: 방 안에서의 게임 준비완료
 	_GS_PKT_GETROOMINFO,				/// 방: 정보보기
 	_GS_PKT_GETROOMINFO_RE,				/// 방: 
@@ -290,7 +293,7 @@ enum eLB_MAIN_PACKET_ID
 	_GS_PKT_PICKUP_CARD,				/// 카드 줍기
 	_GS_PKT_PICKUP_CARD_RE,				/// 카드 줍기
 	_GS_PKT_AWARD,						/// 게임 보상
-	_GS_PKT_BATTLE_SESSION,
+	_GS_PKT_BATTLE_SESSION,				/// pve 전투 시작
 	_GS_PKT_NPC_TRACE,					/// NPC추적
 	_GS_PKT_TRADE_SELLEDCARD_BUY,		/// 카드거래(상점) : 판매한 카드 재구입
 	_GS_PKT_TRADE_SELLEDCARD_BUY_RE,	/// 카드거래(상점) : 판매한 카드 재구입 결과
@@ -313,6 +316,46 @@ enum eLB_MAIN_PACKET_ID
 	_GS_PKT_ACQUIRE_CARD_IN_COMBAT,
 	_GS_PKT_SELECT_COMPENSATION_CARD,
 	_GS_PKT_SELECT_COMPENSATION_CARD_RE,
+	//파티 찾기 ui
+	_GS_PKT_CREATE_PARTY,				///파티 생성
+	_GS_PKT_CREATE_PARTY_RE,			///파티 생성 결과
+	_GS_PKT_INVITE_PARTY,				///파티 초대
+	_GS_PKT_INVITE_PARTY_RE,			///파티 초대 결과
+	_GS_PKT_NEW_PARTY_MEMBER,			///새로들어온 파티원 //기존에 잇는 파티원에게 전송
+	_GS_PKT_ENTER_PARTY,				///파티 입장
+	_GS_PKT_ENTER_PARTY_RE,				///파티 입장 결과
+	_GS_PKT_LEAVE_PARTY,				///파티 퇴장
+	_GS_PKT_LEAVE_PARTY_RE,				///파티 퇴장 결과
+	_GS_PKT_NEW_PARTY_LEADER,			///새로운 파티장 선출
+	_GS_PKT_SEARCH_PARTY,				///파티 찾기
+	//
+	_GS_PKT_CHG_PARTY_OPT,				//파티 옵션 변경
+	_GS_PKT_CHG_PARTY_OPT_RE,			//파티 옵션 변경
+
+	_GS_PKT_READY_PARTY,
+	_GS_PKT_READY_PARTY_RE,
+
+	_GS_PKT_START_PARTY,
+	_GS_PKT_START_PARTY_RE,
+
+	_GS_PKT_HOLY_PLACE,					//던전의 성소에서의 사용한 카드 복구
+	_GS_PKT_HOLY_PLACE_RE,			
+
+	_GS_PKT_RESURRECTION,				//부활 요청
+	_GS_PKT_RESURRECTION_RE,			//부활 요청 처리 결과
+
+	_GS_PKT_USER_DEATH,
+
+	_GS_PKT_UPDATE_LIFE_PT,				//유저가 가지고 잇는 라이프 포인트 전송
+
+	_GS_PKT_UPDATE_TOKEN,				///토큰 갱신
+	_GS_PKT_BATTLE_SESSION_END,			/// pve 전투 종료
+//#ifdef SUB_CHANNEL
+	_GS_PKT_CHANGE_SUBCHANNEL,			//sub channel 변경 요청
+//#endif
+	_GS_PKT_CHG_PLAYER_DECK_RE,			/// 플레이어 덱 변경 결과 
+
+	_GS_PKT_CLICK_NPC,
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -1578,7 +1621,8 @@ struct GS_PKT_ENTERROOM : PACKET_BASE
 		MPID = _GS_PKT_ENTERROOM;
 		Len = sizeof(GS_PKT_ENTERROOM);
 	}
-	DWORD RoomIdx;
+	DWORD	RoomIdx;
+	WCHAR	Passwd[MAX_ROOM_PASSWD];
 };
 
 struct GS_PKT_ENTERROOM_RE  : PACKET_BASE
@@ -1589,9 +1633,9 @@ struct GS_PKT_ENTERROOM_RE  : PACKET_BASE
 		MPID = _GS_PKT_ENTERROOM_RE;
 		Len = sizeof(GS_PKT_ENTERROOM_RE);
 	}
-	DWORD Result;
-	CREATE_ROOM_INFO	 RoomInfo;
-	GS_INROOM_USERDATA	 PlayerList[MAX_PLAYER_INROOM];
+	DWORD				Result;
+	CREATE_ROOM_INFO	RoomInfo;
+	GS_INROOM_USERDATA	PlayerList[MAX_PLAYER_INROOM];
 };
 
 struct GS_PKT_OBSERVER_ENTERROOM : PACKET_BASE
@@ -1602,7 +1646,8 @@ struct GS_PKT_OBSERVER_ENTERROOM : PACKET_BASE
 		MPID = _GS_PKT_OBSERVER_ENTERROOM;
 		Len = sizeof(GS_PKT_OBSERVER_ENTERROOM);
 	}
-	DWORD RoomIdx;
+	DWORD	RoomIdx;
+	WCHAR	Passwd[MAX_ROOM_PASSWD];
 };
 
 struct GS_PKT_OBSERVER_ENTERROOM_RE : PACKET_BASE
@@ -1676,9 +1721,24 @@ struct GS_PKT_CHG_PLAYER_DECK : PACKET_BASE
 		MPID = _GS_PKT_CHG_PLAYER_DECK;
 		Len = sizeof(GS_PKT_CHG_PLAYER_DECK);
 	}
-	WORD	wSid;				/// 유저 고유번호
 	WORD	wDeckIdx;			/// 덱 인덱스:0~5
 	WCHAR	szDeckName[10];		/// 덱 이름
+};
+
+//Serve<->Client
+struct GS_PKT_CHG_PLAYER_DECK_RE : PACKET_BASE
+{
+	GS_PKT_CHG_PLAYER_DECK_RE()
+	{
+		ZeroMemory(this,sizeof(GS_PKT_CHG_PLAYER_DECK_RE));
+		MPID = _GS_PKT_CHG_PLAYER_DECK_RE;
+		Len = sizeof(GS_PKT_CHG_PLAYER_DECK_RE);
+	}
+	WORD	Result;
+	WORD	wDeckIdx;			/// 덱 인덱스:0~5
+	DWORD	wSid;				/// 유저 고유번호
+	WCHAR	szDeckName[10];		/// 덱 이름
+
 };
 //Serve<->Client
 struct GS_PKT_CHG_PLAYER_READY : PACKET_BASE
@@ -2597,8 +2657,24 @@ struct	GS_PKT_BATTLE_SESSION : PACKET_BASE
 		Len = sizeof(GS_PKT_BATTLE_SESSION);
 	};
 	
-	WORD wSid;
-	WORD EvtID;
+	DWORD NPC_ID;
+	DWORD EvtID;
+	DWORD RoomID;
+	WORD Userlist[MAX_PARTY_MEMBER];
+};
+
+struct	GS_PKT_BATTLE_SESSION_END : PACKET_BASE
+{
+	GS_PKT_BATTLE_SESSION_END() {
+		memset(this, 0x00, sizeof(GS_PKT_BATTLE_SESSION_END));
+		MPID = _GS_PKT_BATTLE_SESSION_END;
+		Len = sizeof(GS_PKT_BATTLE_SESSION_END);
+	};
+	
+	DWORD NPC_ID;
+	DWORD EvtID;
+	DWORD RoomID;
+	WORD Userlist[MAX_PARTY_MEMBER];
 };
 
 struct	GS_PKT_MP_BEGIN : PACKET_BASE
@@ -2674,6 +2750,19 @@ struct GS_PKT_SELECT_COMPENSATION_CARD : PACKET_BASE
 	BYTE SelPos;
 };
 
+//#ifdef SUB_CHANNEL
+struct GS_PKT_CHANGE_SUBCHANNEL : PACKET_BASE
+{
+	GS_PKT_CHANGE_SUBCHANNEL()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CHANGE_SUBCHANNEL));
+		MPID = _GS_PKT_CHANGE_SUBCHANNEL;
+		Len = sizeof(GS_PKT_CHANGE_SUBCHANNEL);
+	}
+	WORD ChannelNum;
+};
+//#endif
+
 struct COMPENSATION_INFO
 {
 	COMPENSATION_INFO()
@@ -2715,10 +2804,10 @@ struct GS_PKT_COMPENSATION : PACKET_BASE
 
 	WORD CounterBlewCnt;
 	WORD CriticalCnt;
-	WORD RemainDeckCnt;
-	WORD ClearTime;
-	WORD AcquireGold;
-	WORD AcquireExp;
+	DWORD RemainDeckCnt;
+	DWORD ClearTime;
+	DWORD AcquireGold;
+	DWORD AcquireExp;
 
 };
 //몬스터를 죽여 획득하는 카드
@@ -2774,6 +2863,311 @@ struct GS_PKT_GETROOMINFO_RE : PACKET_BASE
 	WORD				wResult;
 };
 
+struct GS_PKT_CREATE_PARTY : PACKET_BASE
+{
+	GS_PKT_CREATE_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CREATE_PARTY));
+		MPID = _GS_PKT_CREATE_PARTY;
+		Len = sizeof(GS_PKT_CREATE_PARTY);
+	}
+	WORD				wSid;
+};
+
+struct GS_PKT_CREATE_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_CREATE_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CREATE_PARTY_RE));
+		MPID = _GS_PKT_CREATE_PARTY_RE;
+		Len = sizeof(GS_PKT_CREATE_PARTY_RE);
+	}
+	DWORD				PartyIdx;
+	WORD				wSid;		//파티장 번호
+	WORD				wResult;	//결과값
+};
+
+
+struct GS_PKT_NEW_PARTY_LEADER : PACKET_BASE
+{
+	GS_PKT_NEW_PARTY_LEADER()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_NEW_PARTY_LEADER));
+		MPID = _GS_PKT_NEW_PARTY_LEADER;
+		Len = sizeof(GS_PKT_NEW_PARTY_LEADER);
+	}
+	WORD				wSid;
+};
+
+struct GS_PKT_INVITE_PARTY : PACKET_BASE
+{
+	GS_PKT_INVITE_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_INVITE_PARTY));
+		MPID = _GS_PKT_INVITE_PARTY;
+		Len = sizeof(GS_PKT_INVITE_PARTY);
+	}
+	WORD				wSid;
+};
+
+struct GS_PKT_INVITE_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_INVITE_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_INVITE_PARTY_RE));
+		MPID = _GS_PKT_INVITE_PARTY_RE;
+		Len = sizeof(GS_PKT_INVITE_PARTY_RE);
+	}
+
+	WORD	Result;
+	WORD				wSid;
+};
+
+struct GS_PKT_NEW_PARTY_MEMBER: PACKET_BASE
+{
+	GS_PKT_NEW_PARTY_MEMBER()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_NEW_PARTY_MEMBER));
+		MPID = _GS_PKT_NEW_PARTY_MEMBER;
+		Len = sizeof(GS_PKT_NEW_PARTY_MEMBER);
+	}
+	PARTY_USER_INFO				data;
+};
+
+struct GS_PKT_LEAVE_PARTY : PACKET_BASE
+{
+	GS_PKT_LEAVE_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_LEAVE_PARTY));
+		MPID = _GS_PKT_LEAVE_PARTY;
+		Len = sizeof(GS_PKT_LEAVE_PARTY);
+	}
+
+	WORD				wSid;
+};
+
+struct GS_PKT_LEAVE_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_LEAVE_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_LEAVE_PARTY_RE));
+		MPID = _GS_PKT_LEAVE_PARTY_RE;
+		Len = sizeof(GS_PKT_LEAVE_PARTY_RE);
+	}
+	WORD				wSid;
+	WORD				wResult;
+};
+
+struct GS_PKT_ENTER_PARTY : PACKET_BASE
+{
+	GS_PKT_ENTER_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_ENTER_PARTY));
+		MPID = _GS_PKT_ENTER_PARTY;
+		Len = sizeof(GS_PKT_ENTER_PARTY);
+	}
+	WORD				PartyIdx;
+};
+
+struct GS_PKT_ENTER_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_ENTER_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_ENTER_PARTY_RE));
+		MPID = _GS_PKT_ENTER_PARTY_RE;
+		Len = sizeof(GS_PKT_ENTER_PARTY_RE);
+	}
+
+
+	DWORD				PartyIdx;		//파티번호
+	PARTY_USER_INFO		UserList[MAX_PARTY_MEMBER];
+	WORD				PartyLeaderwSid;
+};
+
+struct GS_PKT_UPDATE_TOKEN : PACKET_BASE
+{
+	GS_PKT_UPDATE_TOKEN()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_UPDATE_TOKEN));
+		MPID = _GS_PKT_UPDATE_TOKEN;
+		Len = sizeof(GS_PKT_UPDATE_TOKEN);
+	}
+
+	DWORD				nToken;		//현재 토큰 갯수
+};
+
+struct GS_PKT_SEARCH_PARTY : PACKET_BASE
+{
+	GS_PKT_SEARCH_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_SEARCH_PARTY));
+		MPID = _GS_PKT_SEARCH_PARTY;
+		Len = sizeof(GS_PKT_SEARCH_PARTY);
+	}
+	
+	DWORD SenarioIdx;
+	DWORD DungeonMapIdx;
+};
+
+
+struct GS_PKT_CHG_PARTY_OPT : PACKET_BASE
+{
+	GS_PKT_CHG_PARTY_OPT()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CHG_PARTY_OPT));
+		MPID = _GS_PKT_CHG_PARTY_OPT;
+		Len = sizeof(GS_PKT_CHG_PARTY_OPT);
+	}
+
+	WORD Senario;
+	WORD DungeonIdx;
+};
+
+struct GS_PKT_CHG_PARTY_OPT_RE : PACKET_BASE
+{
+	GS_PKT_CHG_PARTY_OPT_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CHG_PARTY_OPT_RE));
+		MPID = _GS_PKT_CHG_PARTY_OPT_RE;
+		Len = sizeof(GS_PKT_CHG_PARTY_OPT_RE);
+	}
+
+	WORD Result;
+	WORD ErrorwSid;
+
+	WORD Senario;
+	WORD DungeonIdx;
+};
+
+struct GS_PKT_READY_PARTY : PACKET_BASE
+{
+	GS_PKT_READY_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_READY_PARTY));
+		MPID = _GS_PKT_READY_PARTY;
+		Len = sizeof(GS_PKT_READY_PARTY);
+	}
+};
+
+struct GS_PKT_READY_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_READY_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_READY_PARTY_RE));
+		MPID = _GS_PKT_READY_PARTY_RE;
+		Len = sizeof(GS_PKT_READY_PARTY_RE);
+	}
+
+	WORD Result;
+	WORD IsReady;		//0 : 준비않됨 1: 준비됨
+	WORD wSid;
+};
+
+struct GS_PKT_START_PARTY : PACKET_BASE
+{
+	GS_PKT_START_PARTY()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_START_PARTY));
+		MPID = _GS_PKT_START_PARTY;
+		Len = sizeof(GS_PKT_START_PARTY);
+	}
+};
+
+struct GS_PKT_START_PARTY_RE : PACKET_BASE
+{
+	GS_PKT_START_PARTY_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_START_PARTY_RE));
+		MPID = _GS_PKT_START_PARTY_RE;
+		Len = sizeof(GS_PKT_START_PARTY_RE);
+	}
+
+	WORD Result;
+};
+
+struct GS_PKT_HOLY_PLACE : PACKET_BASE
+{
+	GS_PKT_HOLY_PLACE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_HOLY_PLACE));
+		MPID = _GS_PKT_HOLY_PLACE;
+		Len = sizeof(GS_PKT_HOLY_PLACE);
+	}
+};
+
+struct GS_PKT_HOLY_PLACE_RE : PACKET_BASE
+{
+	GS_PKT_HOLY_PLACE_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_HOLY_PLACE_RE));
+		MPID = _GS_PKT_HOLY_PLACE_RE;
+		Len = sizeof(GS_PKT_HOLY_PLACE_RE);
+	}
+
+	WORD Result;
+};
+
+struct GS_PKT_RESURRECTION : PACKET_BASE
+{
+	GS_PKT_RESURRECTION()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_RESURRECTION));
+		MPID = _GS_PKT_RESURRECTION;
+		Len = sizeof(GS_PKT_RESURRECTION);
+	}
+
+	WORD wSid;
+};
+
+struct GS_PKT_RESURRECTION_RE : PACKET_BASE
+{
+	GS_PKT_RESURRECTION_RE()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_RESURRECTION_RE));
+		MPID = _GS_PKT_RESURRECTION_RE;
+		Len = sizeof(GS_PKT_RESURRECTION_RE);
+	}
+
+	WORD Result;
+	WORD wSid;
+};
+
+struct GS_PKT_USER_DEATH : PACKET_BASE
+{
+	GS_PKT_USER_DEATH()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_USER_DEATH));
+		MPID = _GS_PKT_USER_DEATH;
+		Len = sizeof(GS_PKT_USER_DEATH);
+	}
+
+	WORD wSid;
+};
+
+struct GS_PKT_UPDATE_LIFE_PT : PACKET_BASE
+{
+	GS_PKT_UPDATE_LIFE_PT()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_UPDATE_LIFE_PT));
+		MPID = _GS_PKT_UPDATE_LIFE_PT;
+		Len = sizeof(GS_PKT_UPDATE_LIFE_PT);
+	}
+
+	WORD Cnt;
+};
+
+
+struct GS_PKT_CLICK_NPC : PACKET_BASE
+{
+	GS_PKT_CLICK_NPC()
+	{
+		memset(this, 0x00, sizeof(GS_PKT_CLICK_NPC));
+		MPID = _GS_PKT_CLICK_NPC;
+		Len = sizeof(GS_PKT_CLICK_NPC);
+	}
+
+	DWORD TableID;
+};
 
 #ifdef _SERVER
 //////////////////////////////////////////////////////////////////////
@@ -2807,7 +3201,13 @@ enum eMW_PACKET_ID {
 	_MW_PKT_DUNGEON_LEAVE,		/// 던전 퇴장(안쓰임)
 	_MW_PKT_DUNGEON_LEAVE_RE,	/// 던전 퇴장(안쓰임)
 	_MW_PKT_CHAR_SAVE,			/// 캐릭터 저장
-	_MW_PKT_CHAR_SAVE_RE,		
+	_MW_PKT_CHAR_SAVE_RE,	
+	_MW_PKT_GET_EVT_TIME,
+	_MW_PKT_GET_EVT_TIME_RE,
+	_MW_PKT_GET_EVT_UPDATE_TIME,
+	_MW_PKT_GET_EVT_UPDATE_TIME_RE,
+	_MW_PKT_UPDATE_TOKEN_ALL_USERS,
+	_MW_PKT_UPDATE_LOG_MSG
 };
 
 struct MW_PKT_USER_LOGIN : PACKET_BASE
@@ -3060,7 +3460,76 @@ struct MW_PKT_CHAR_SAVE_RE : PACKET_BASE
 	};
 };
 
+struct MW_PKT_GET_EVT_TIME : PACKET_BASE
+{
+	MW_PKT_GET_EVT_TIME() {
+		memset(this, 0, sizeof(MW_PKT_GET_EVT_TIME));
+		MPID = _MW_PKT_GET_EVT_TIME;
+		Len = sizeof(MW_PKT_GET_EVT_TIME);
+	};
+
+	BYTE EvtID;
+};
+
+struct MW_PKT_GET_EVT_TIME_RE : PACKET_BASE
+{
+	char FireTime[20];
+	int  TypeID;
+
+	MW_PKT_GET_EVT_TIME_RE() {
+		memset(this, 0, sizeof(MW_PKT_GET_EVT_TIME_RE));
+		MPID = _MW_PKT_GET_EVT_TIME_RE;
+		Len = sizeof(MW_PKT_GET_EVT_TIME_RE);
+	};
+};
+
+struct MW_PKT_GET_EVT_UPDATE_TIME : PACKET_BASE
+{
+	WORD Type;
+	WORD AddDay;
+	MW_PKT_GET_EVT_UPDATE_TIME() {
+		memset(this, 0, sizeof(MW_PKT_GET_EVT_UPDATE_TIME));
+		MPID = _MW_PKT_GET_EVT_UPDATE_TIME;
+		Len = sizeof(MW_PKT_GET_EVT_UPDATE_TIME);
+	};
+};
+
+struct MW_PKT_GET_EVT_UPDATE_TIME_RE : PACKET_BASE
+{
+	MW_PKT_GET_EVT_UPDATE_TIME_RE() {
+		memset(this, 0, sizeof(MW_PKT_GET_EVT_UPDATE_TIME_RE));
+		MPID = _MW_PKT_GET_EVT_UPDATE_TIME_RE;
+		Len = sizeof(MW_PKT_GET_EVT_UPDATE_TIME_RE);
+	};
+};
+
+
+struct MW_PKT_UPDATE_TOKEN_ALL_USERS : PACKET_BASE
+{
+	MW_PKT_UPDATE_TOKEN_ALL_USERS() {
+		memset(this, 0, sizeof(MW_PKT_UPDATE_TOKEN_ALL_USERS));
+		MPID = _MW_PKT_UPDATE_TOKEN_ALL_USERS;
+		Len = sizeof(MW_PKT_UPDATE_TOKEN_ALL_USERS);
+	};
+
+	int Cnt;
+};
+
+struct MW_PKT_UPDATE_LOG_MSG : PACKET_BASE
+{
+	MW_PKT_UPDATE_LOG_MSG() {
+		memset(this, 0, sizeof(MW_PKT_UPDATE_LOG_MSG));
+		MPID = _MW_PKT_UPDATE_LOG_MSG;
+		Len = sizeof(MW_PKT_UPDATE_LOG_MSG);
+	};
+
+	WORD	Type;
+	WCHAR   szMsg[300];
+	WCHAR	szUserID[_MAX_USER_ID_SIZE];	/// 아이디
+	WCHAR	szCharName[_MAX_CHAR_ID_SIZE];			/// 패스워드
+
+};
 #endif
 /////////////////////////////////////////////////////////////////////// MIDDLEWARE PROTOCOL
 
-#pragma pack(pop)
+#pragma pack()

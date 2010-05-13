@@ -6,7 +6,7 @@ IP = "66.232.147.107"
 PORT = 8292
 
 
-GAMESERVER_INDEX= 0 --0 base로 계산함.
+GAMESERVER_INDEX= 1 --0 base로 계산함.
 GAMECHANNEL_INDEX=0 -- 현재 channel 은 거의 1개임
 
 -- Launch( id,pass,nick, "scenario.lua" )

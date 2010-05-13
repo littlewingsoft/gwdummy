@@ -290,7 +290,7 @@ struct TRADE_CARD_DISSOLVE		/// 카드거래정보(분해)
 };
 
 //#ifdef _SERVER
-// 캐릭터 파라미터들 148 BYTE
+// 캐릭터 파라미터들 152 BYTE
 struct CHAR_DATA {
 	WCHAR			szCharName[_MAX_CHAR_ID_SIZE];	/// 캐릭터 이름
 	BYTE			byAttr;							/// 속성
@@ -325,6 +325,7 @@ struct CHAR_DATA {
 	WORD			wMainGrade;						/// 공식전 계급
 	WORD			wDummy;							/// 
 	int				nRank;							/// 순위
+	int				nToken;							/// 토큰
 	int				nIdxParts[_MAX_PARTS_CARD_USE_SIZE];	/// 장착파츠의 인덱스들 : 파츠의 세부데이타에서 인덱스만 추출하여 대입한다.
 	CHAR_DATA() { memset(this, 0, sizeof(CHAR_DATA)); };
 };
@@ -348,13 +349,28 @@ struct USER_DATA {
 	USER_DATA() { memset(this, 0, sizeof(USER_DATA)); };
 };
 
+struct PARTY_USER_INFO
+{
+
+	WCHAR			szCharName[_MAX_CHAR_ID_SIZE];	/// 캐릭터 이름
+	WORD			IsReady;
+	WORD			wSid;
+	PARTY_USER_INFO() { memset(this,0,sizeof(PARTY_USER_INFO)); }
+};
 
 #define MAX_ROOM_LIST	10
 #define MAX_ROOM_PASSWD	10
 #define MAX_ROOM_NAME	50
 
+#define MAX_PARTY_MEMBER 4
+
+enum EVT_TIME_TABLE_ID
+{
+	EVT_ID_TOKEN=1,
+};
+
 //#endif
 //////////////////////////////////////////////////////////////////////////////////
 
 
-#pragma pack(pop)
+#pragma pack()
