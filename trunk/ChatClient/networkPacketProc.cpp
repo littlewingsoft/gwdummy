@@ -419,6 +419,65 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 		}
 		break;
 
+	case _GS_PKT_CREATE_PARTY_RE:
+		{
+			GS_PKT_CREATE_PARTY_RE* pkt = (GS_PKT_CREATE_PARTY_RE*) pkPacket;
+			if( pkt->wResult == 0 )
+			{
+				CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();
+
+				stringstream ss;
+				ss<< "[" << pkt->PartyIdx << "] 번 파티가 성공적으로 생성" << endl;
+				
+				pkMain->m_ChatList.AddString( ss.str().c_str() );
+				pkMain->m_ChatList.SetTopIndex( pkMain->m_ChatList.GetCount()-1);
+
+			}
+		}
+		break;
+
+	case _GS_PKT_NEW_PARTY_MEMBER:
+		{
+			GS_PKT_NEW_PARTY_MEMBER* pkt = (GS_PKT_NEW_PARTY_MEMBER*) pkPacket;
+
+			char nick[256]={0,};
+			int retLength = WideCharToMultiByte(CP_ACP, 0, 
+			pkt->data.szCharName, _MAX_CHAT_SIZE*2, nick, 256, 0,0);
+
+			lua_tinker::call<void,const char*>( luaGlue::g_hLua, "OnNewPartyMember", nick );
+
+		}
+		break;
+
+	case _GS_PKT_DUNGEON_ENTREE_RE:
+		{
+			lua_tinker::call<void>( luaGlue::g_hLua, "OnEnter_Dungeon" );
+		}
+		break;
+
+    case _GS_PKT_START_PARTY_RE:
+		{
+		
+		}
+		break;
+
+	case _GS_PKT_DUNGEON_LEAVE_RE:
+		{
+			//누군가 던젼에서 나가면 나도 같이 나가기. 더미 혼자서 할게없음.
+			// 파티도 탈퇴하고 다시? 파티는 일단 유지시킴.
+
+			//lua_tinker::call<void>( luaGlue::g_hLua, "On_GS_PKT_DUNGEON_LEAVE_RE" );
+		}
+		break;
+
+	case _GS_PKT_NPC_DEATH:
+	case _GS_PKT_BATTLE_SESSION_END:
+
+
+	case _GS_PKT_UPDATE_TOKEN:
+	case _GS_PKT_BATTLE_SESSION:
+		break;
+
 	case _GS_PKT_REQ_SELECT_DECKCARD_RE:
 	case _GS_PKT_RESOURCE_ALL_COMPLETE:
 	case _GS_PKT_SCENE_COMPLETE_RE:
@@ -456,6 +515,7 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 	case _GS_PKT_RESOURCE_COMPLETE_RE:
 		break;
 
+	case _GS_PKT_DELUSER:
 	case _GS_PKT_MODIFYROOM:
 	case _GS_PKT_MYCHAR_PARTS_GET_RE:
 	case _GS_PKT_MYCHAR_DECKS_GET_RE:
@@ -469,6 +529,12 @@ void CChatClientDlg::Process(PACKET_BASE* pkPacket)
 
 	default:
 		{
+			CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();
+			stringstream ss;
+			ss<< " NoneHandling [" << pkPacket->MPID << "]" << endl;
+			pkMain->m_ChatList.AddString( ss.str().c_str() );
+			pkMain->m_ChatList.SetTopIndex( pkMain->m_ChatList.GetCount()-1);
+
 			MessageBox("nonhandle","error",MB_OK );
 		}
 		break;

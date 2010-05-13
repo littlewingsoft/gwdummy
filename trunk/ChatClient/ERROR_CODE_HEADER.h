@@ -1,11 +1,12 @@
 enum ERROR_CODE
 {
-	ERROR_NOT_FOUND_ROOM=1,					//방을 찾을 수 없습니다.
+	ERROR_NOT_FOUND_ROOM=8,					//방을 찾을 수 없습니다.
 	ERROR_NOT_FOUND_USER,					//유저를 찾을 수 없습니다.
 	ERROR_THE_ROOM_IS_FULL,					//방이 꽉 찼습니다.
 	ERROR_CAN_NOT_ENTER_ROOM,				//방에 입장할수 없습니다.
 	ERROR_NOT_ROOM_LEADER,					//방장이 아닙니다.
 	ERROR_CAN_NOT_SUMMON_CREATURE,			//크리쳐를 소환할수 없 습니다.
+	ERROR_CAN_NOT_CHG_DECK,					//덱을 변경 할 수 없습니다.
 	ERROR_CAN_NOT_LEAVE_ROOM,				//방에 퇴장할 수 없습니다.
 	ERROR_NOT_ENOUGH_EP,					//EP가 충분치 않습니다.
 	ERROR_NOT_ENOUGH_MP,					//MP가 충분치 않습니다.
@@ -27,5 +28,14 @@ enum ERROR_CODE
 	ERROR_NOT_ENOUGH_INVEN_SPACE,			//인벤이 충분하지 않습니다.
 	ERROR_ALREADY_SELECTED,					//이미 다 선택 했습니다.
 	ERROR_UNABLE_TO_ATTACK_THE_TEAM,		//같은 팀은 공격 할 수 없습니다.
+	//
+	ERROR_CAN_NOT_ATTACK_1LINE,				//1진 크리쳐를 공격할 수 없습니다.
+	//던전 파티 ui관련 error
+	ERROR_NOT_ENOUGH_TOKEN,					//입장 가능 토큰이 충분치 않습니다.
+	ERROR_NOT_PARTY_LEADER,					//파티 장이 아닙니다.
+	ERROR_NOT_FOUND_PARTY,					//소속된 파티가 없습니다.
+	ERROR_CAN_NOT_CREATE_PARTY,				//파티를 생성할 수 없습니다.
+	ERROR_CAN_NOT_ENOUGH_LIFE_POINT			//라이프 포인트가 부족합니다.
+	//
 
 };

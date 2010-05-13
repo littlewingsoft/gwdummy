@@ -128,6 +128,58 @@ namespace luaGlue
 		}
 	}
 
+	void send_PartySearch()
+	{
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+
+		GS_PKT_SEARCH_PARTY pkt;
+		pkt.FROM = _FROM_CLIENT;
+		pkt.DungeonMapIdx = 30000014;
+		pkt.SenarioIdx = 0;
+		
+		pkMain->m_ASocket.SendData( &pkt, sizeof( pkt ) );		
+	}
+
+	void send_PartyCreate()
+	{
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+
+		GS_PKT_CREATE_PARTY pkt;
+		pkt.FROM = _FROM_CLIENT;
+		pkt.wSid = pkMain->m_wSid;
+		
+		pkMain->m_ASocket.SendData( &pkt, sizeof( pkt ) );
+	}
+	void send_PartyEnter(int partyIndex)
+	{
+		GS_PKT_ENTER_PARTY pkt;
+		pkt.FROM = _FROM_CLIENT;
+		pkt.PartyIdx = partyIndex;
+
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+		pkMain->m_ASocket.SendData( &pkt, sizeof( pkt ) );
+		
+	}
+
+	void send_ClickNpc(int tbId)
+	{
+		GS_PKT_CLICK_NPC pkt;
+		pkt.FROM = _FROM_CLIENT;
+		pkt.TableID = tbId;
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+		pkMain->m_ASocket.SendData( &pkt, sizeof( pkt ) );
+
+	}
+	void send_PartyReady()
+	{
+		GS_PKT_READY_PARTY pkt;
+		pkt.FROM = _FROM_CLIENT;
+		pkt.Len = sizeof( pkt );
+
+		CChatClientDlg* pkMain= (CChatClientDlg*) theApp.GetMainWnd();	
+		pkMain->m_ASocket.SendData( &pkt, sizeof( pkt ) );
+	}
+
 	void send_requestRoomList()
 	{
 		//방목록 요구함.
@@ -238,6 +290,14 @@ namespace luaGlue
 		lua_tinker::def( g_hLua, "send_loadinComplete", send_loadinComplete );	
 		lua_tinker::def( g_hLua, "send_requestRoomList", send_requestRoomList );	
 		lua_tinker::def( g_hLua, "send_chatmsg", send_chatmsg );	
+
+		
+		lua_tinker::def( g_hLua, "send_PartySearch", send_PartySearch );	
+		lua_tinker::def( g_hLua, "send_PartyCreate", send_PartyCreate );	
+		lua_tinker::def( g_hLua, "send_PartyEnter", send_PartyEnter );	
+		lua_tinker::def( g_hLua, "send_PartyReady", send_PartyReady );	
+		lua_tinker::def( g_hLua, "send_ClickNpc", send_ClickNpc );	
+		
 
 		lua_tinker::def( g_hLua, "SetTimer", SetTimer );
 		lua_tinker::def( g_hLua, "MySID",MySID );
